@@ -11,15 +11,15 @@ namespace YNC_NeoPlugin
 
     /*
 
-    　　*** ゆかりねっとコネクター　Neo プラグイン開発用ひな形 ***
-        version 1.0
+        *** ゆかりねっとコネクター  Neo プラグイン開発用ひな形 ***
+        version 1.1
 
-    　　① 使用するフレームワークは .Net Framework 4.8 です。
-    　　② 64bit デコンパイルをしてください。
-    　　③ 生成されたファイルは、ゆかりねっとコネクターNeoのPluginフォルダ内に
-    　　　 自分でフォルダを作って、その中に生成物をいれてください。
-    　　④ うまく生成できていれば、ゆかりねっとコネクターNeoを起動したときに
-    　　　 自動的にサーチされ、ファイルが読み込まれます。
+        ① 使用するフレームワークは .Net Framework 4.8 です。
+        ② 64bit デコンパイルをしてください。
+        ③ 生成されたファイルは、ゆかりねっとコネクターNeoのPluginフォルダ内に
+           自分でフォルダを作って、その中に生成物をいれてください。
+        ④ うまく生成できていれば、ゆかりねっとコネクターNeoを起動したときに
+           自動的にサーチされ、ファイルが読み込まれます。
 
     */
 
@@ -29,6 +29,31 @@ namespace YNC_NeoPlugin
         private string ConfigPath = "";
         private string PluginPath = "";
         private Dictionary<string, object> ConfigData = new Dictionary<string, object>();
+        
+        /*
+            //呼び出しアイコンの登録（押されたら、onTrigger()がよばれる予定…将来用）
+            public delegate void RegistIcon(string name, byte[] bitmap);
+            
+            //内部設定値の設定・取得関数…将来用
+            public delegate string GetSettingParam(string name);
+            public delegate void SetSettingParam(string name, string value);
+            
+            //音声認識の代わりにテキストを送信するコールバック
+            //ID - Guid.NewGuid().ToString()で生成した文字をを渡す。行毎のユニークな値。K
+            //text - 母国語文字列
+            //isFixed - 文章行が確定となったか否か（確定＝true)
+            public delegate void SendTextdata(string ID, string text, bool isFixed);
+            
+            //デバッグログへ転記する
+            public delegate void WriteLog(string message);
+            
+        */
+        
+        public dynamic registIcon = null;
+        public dynamic getSettingParam = null;
+        public dynamic setSettingParam = null;
+        public dynamic sendTextdata = null;
+        public dynamic writeLog = null;
 
         /********************************/
         /* プラグインの素性             */
@@ -47,7 +72,7 @@ namespace YNC_NeoPlugin
 
         /// <summary>
         /// 設定ファイルなどの識別に使われるタグ
-        /// プラグインを自作する場合は　「Plugin_作者識別ニックネーム_ツール識別名」をベースに命名してください
+        /// プラグインを自作する場合は  「Plugin_作者識別ニックネーム_ツール識別名」をベースに命名してください
         /// </summary>
         public string Plugin_Tag = "Plugin_User_Prototype";
 
@@ -64,6 +89,24 @@ namespace YNC_NeoPlugin
 
             try
             {
+                //コールバックの設定
+                if (Message.ContainsKey("RegistIcon")) { registIcon = Message["RegistIcon"]; }
+                if (Message.ContainsKey("GetSettingParam")) { getSettingParam = Message["GetSettingParam"]; }
+                if (Message.ContainsKey("SetSettingParam")) { setSettingParam = Message["SetSettingParam"]; }
+                if (Message.ContainsKey("RegistIcon")) { sendTextdata = Message["SendTextdata"]; }
+                if (Message.ContainsKey("WriteLog")) { writeLog = Message["WriteLog"]; }
+            }
+            catch (Exception ex)
+            {
+                if(writeLog!=null)
+                {
+                    writeLog($"■エラー：{ex.Message}");
+                }
+
+            }
+
+            try
+            {
                 string PresetFile = System.IO.Path.Combine(ConfigPath, $"{Plugin_Tag}.config");
                 if (File.Exists(PresetFile))
                 {
@@ -76,8 +119,10 @@ namespace YNC_NeoPlugin
             }
             catch (Exception ex)
             {
-                Console.WriteLine("-------------------------------------");
-                Console.WriteLine($"■エラー：{ex.Message}");
+                if(writeLog!=null)
+                {
+                    writeLog($"■エラー：{ex.Message}");
+                }
             }
         }
 
@@ -137,7 +182,7 @@ namespace YNC_NeoPlugin
                 }
                 else
                 {
-                    //Message["Text1"] ->　母国語　（表示位置が下の場合は Message["Text6"] に格納されることがある）
+                    //Message["Text1"] ->  母国語  （表示位置が下の場合は Message["Text6"] に格納されることがある）
                     //Message["Language1"]～Message["Language6"] ：言語名
                     //Message["ID"] ：行ごとにつくユニークなID
                 }
@@ -153,7 +198,7 @@ namespace YNC_NeoPlugin
                 }
                 else
                 {
-                    //Message["Text1"] ->　母国語　（表示位置が下の場合は Message["Text6"] に格納されることがある）
+                    //Message["Text1"] ->  母国語  （表示位置が下の場合は Message["Text6"] に格納されることがある）
                     //Message["Language1"]～Message["Language6"] ：言語名
                     //Message["ID"] ：行ごとにつくユニークなID
                 }
@@ -168,6 +213,25 @@ namespace YNC_NeoPlugin
         public void onTrigger(Dictionary<string, object> Message)
         {
             /* reserved : 将来実装予定 */
+        }
+
+        /// <summary>
+        /// プラグインが有効になったとき
+        /// </summary>
+        /// <param name="Message">パラメータ</param>
+        public void onEnabled(Dictionary<string, object> Message)
+        {
+            /*  対応：v1.60～ */
+        }
+
+        /// <summary>
+        /// プラグインが無効になったとき
+        /// </summary>
+        /// <param name="Message">パラメータ</param>
+        public void onDisabled(Dictionary<string, object> Message)
+        {
+            /*  対応：v1.60～ */
+
         }
 
         /// <summary>
@@ -188,7 +252,7 @@ namespace YNC_NeoPlugin
         }
 
         /// <summary>
-        /// 翻訳前の補正　
+        /// 翻訳前の補正  
         /// </summary>
         /// <param name="Message">文字データ</param>
         /// <returns></returns>
