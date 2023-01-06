@@ -72,6 +72,7 @@
     </Compile>
     <Compile Include="PluginFunction.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UserProgram.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ConfigWindow.resx">
@@ -80,6 +81,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Newtonsoft_Json_License_MIT.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
