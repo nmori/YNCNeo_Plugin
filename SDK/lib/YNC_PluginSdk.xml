@@ -1,0 +1,266 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>YNC_PluginSdk</name>
+    </assembly>
+    <members>
+        <member name="T:YNC_PluginSdk.ConfigStore`1">
+            <summary>
+            設定を {ConfigFolder}\{Plugin_Tag}.config へ JSON (Newtonsoft.Json) で保存・復元する。
+            ファイル名と形式は従来のプラグイン雛形の SaveConfig と同じなので、既存の .config もそのまま読み書きできる。
+            </summary>
+            <typeparam name="T">設定データの型。緩く扱いたい場合は <c>Dictionary&lt;string, object&gt;</c> を指定してもよい。</typeparam>
+        </member>
+        <member name="M:YNC_PluginSdk.ConfigStore`1.#ctor(System.String,System.String)">
+            <param name="configFolder">Host.ConfigPath (Message["ConfigFolder"]) をそのまま渡す。</param>
+            <param name="tag">Plugin_Tag をそのまま渡す。ファイル名は "{tag}.config" になる。</param>
+        </member>
+        <member name="P:YNC_PluginSdk.ConfigStore`1.FilePath">
+            <summary>設定ファイルのフルパス。</summary>
+        </member>
+        <member name="M:YNC_PluginSdk.ConfigStore`1.Load(System.Action{System.Exception})">
+            <summary>
+            設定を読み込む。ファイルが無い・壊れている場合は例外を投げず既定値 (<c>new T()</c>) を返す。
+            </summary>
+            <param name="onError">読み込みに失敗したときに通知を受けたい場合に指定 (例: Host.WriteLog へ転送)。</param>
+        </member>
+        <member name="M:YNC_PluginSdk.ConfigStore`1.Save(`0,System.Action{System.Exception})">
+            <summary>
+            設定を保存する。失敗しても例外は投げない (フックや終了処理を巻き込まないため)。
+            </summary>
+            <param name="data">保存するデータ。</param>
+            <param name="onError">保存に失敗したときに通知を受けたい場合に指定。</param>
+        </member>
+        <member name="T:YNC_PluginSdk.PluginBase">
+            <summary>
+            ゆかりねっとコネクターNEO プラグインの共通基底クラス。
+            <para>
+            本体はプラグイン DLL から FullName が ".PluginFunction" で終わる型を探してインスタンス化するため、
+            派生クラスの名前は必ず PluginFunction にすること。
+            </para>
+            <para>
+            本体は public メソッドの名前の完全一致でフックの有無を判定する。そのため、このクラスは
+            PostRecognition / PreTranslation / PostTranslation / UpdateText / CaptionAfterView /
+            onCommand / onRequestConfigWindow / onEnabled / onDisabled を宣言していない
+            (宣言すると、使わないプラグインでも発話のたびに呼ばれてしまう)。
+            使うフックは override ではなく、派生クラスに同じ名前の public メソッドとしてそのまま書くこと。
+            逆に、補助の public メソッドにこれらの名前を付けてはいけない。
+            </para>
+            <para>
+            onLoad は Host の構築を必ず経由させるため封印してある。初期化は <see cref="M:YNC_PluginSdk.PluginBase.OnLoaded"/> で行う。
+            </para>
+            </summary>
+        </member>
+        <member name="F:YNC_PluginSdk.PluginBase.Plugin_ID">
+            <summary>
+            プラグイン固有の GUID 文字列。本体がフィールドとして読む。他のプラグインとぶつからない値にすること。
+            </summary>
+        </member>
+        <member name="F:YNC_PluginSdk.PluginBase.Plugin_Tag">
+            <summary>
+            識別タグ。設定ファイル名 ({Plugin_Tag}.config) などに使われる。DLL 名 (AssemblyName) と揃えるとロードが速い。
+            </summary>
+        </member>
+        <member name="F:YNC_PluginSdk.PluginBase.Plugin_Version">
+            <summary>
+            プラグイン独自のバージョン表記 (例: "v1.0")。本体は参照しない。
+            </summary>
+        </member>
+        <member name="F:YNC_PluginSdk.PluginBase.Plugin_ApiVersion">
+            <summary>
+            このプラグインが依拠する SDK の API バージョン (既定値 <see cref="F:YNC_PluginSdk.PluginSdk.ApiVersion"/>)。
+            本体が対応する上限より大きい場合、プラグインは読み込まれない。
+            </summary>
+        </member>
+        <member name="P:YNC_PluginSdk.PluginBase.Plugin_Name">
+            <summary>
+            一覧に表示されるプラグイン名。本体はプロパティとして読む。
+            言語ごとに名前を出し分けたい場合は派生クラスで override する。
+            </summary>
+        </member>
+        <member name="P:YNC_PluginSdk.PluginBase.Host">
+            <summary>
+            本体との連携用の型安全なファサード。<see cref="M:YNC_PluginSdk.PluginBase.OnLoaded"/> 以降で参照できる。
+            </summary>
+        </member>
+        <member name="P:YNC_PluginSdk.PluginBase.ConfigPath">
+            <summary>設定ファイルの保存先フォルダ (Host.ConfigPath)。</summary>
+        </member>
+        <member name="P:YNC_PluginSdk.PluginBase.PluginFolder">
+            <summary>このプラグインの DLL があるフォルダ (Host.PluginFolder)。</summary>
+        </member>
+        <member name="M:YNC_PluginSdk.PluginBase.onLoad(System.Collections.Generic.Dictionary{System.String,System.Object})">
+            <summary>
+            本体が呼び出す onLoad。Host を構築してから <see cref="M:YNC_PluginSdk.PluginBase.OnLoaded"/> を呼ぶ。
+            追加の初期化は OnLoaded をオーバーライドして行うこと。
+            </summary>
+            <param name="message">本体から渡される連携用の Dictionary。</param>
+        </member>
+        <member name="M:YNC_PluginSdk.PluginBase.OnLoaded">
+            <summary>
+            onLoad の完了時に呼ばれる。この時点で Host が使える。
+            本体の UI スレッドで同期実行され、タイムアウトが無いので、通信待ちなどのブロックする処理は書かないこと。
+            </summary>
+        </member>
+        <member name="M:YNC_PluginSdk.PluginBase.onTerminate(System.Collections.Generic.Dictionary{System.String,System.Object})">
+            <summary>
+            プラグインがアンロードされるときに呼ばれる。既定は何もしない。設定の保存などが必要なら override する。
+            <para>
+            アプリ終了時は UI スレッドとは別のスレッドから 3 秒のタイムアウト付きで呼ばれる。
+            保存を先に済ませ、WinForms の窓は作成元スレッドへ BeginInvoke で渡して破棄すること。
+            </para>
+            </summary>
+            <param name="message">本体から渡される終了時のパラメータ。</param>
+        </member>
+        <member name="T:YNC_PluginSdk.PluginHost">
+            <summary>
+            本体が onLoad に渡す連携用 Dictionary を、型安全なプロパティにしたもの。
+            <para>
+            存在しない・型が合わないキーのプロパティは例外を投げず null (または既定値) になる。
+            古い本体には無いコールバックもあるので、呼び出す前に必ず null チェックすること。
+            </para>
+            </summary>
+        </member>
+        <member name="P:YNC_PluginSdk.PluginHost.RawMessage">
+            <summary>onLoad に渡された Dictionary の生値。SDK にプロパティが無いキー (例: "FinishCaptionForSpeech") を読むときに使う。</summary>
+        </member>
+        <member name="P:YNC_PluginSdk.PluginHost.LogFolder">
+            <summary>ログフォルダ。</summary>
+        </member>
+        <member name="P:YNC_PluginSdk.PluginHost.ConfigPath">
+            <summary>設定ファイルの保存先フォルダ。</summary>
+        </member>
+        <member name="P:YNC_PluginSdk.PluginHost.PluginFolder">
+            <summary>このプラグインの DLL があるフォルダ。</summary>
+        </member>
+        <member name="P:YNC_PluginSdk.PluginHost.Dispatcher">
+            <summary>本体の UI スレッドの Dispatcher。フックから画面を触るときは BeginInvoke で UI スレッドへ渡す。</summary>
+        </member>
+        <member name="P:YNC_PluginSdk.PluginHost.VersionTag">
+            <summary>本体のバージョン表記。</summary>
+        </member>
+        <member name="P:YNC_PluginSdk.PluginHost.Enabled">
+            <summary>起動時にプラグインが有効だったか。</summary>
+        </member>
+        <member name="P:YNC_PluginSdk.PluginHost.DebugMode">
+            <summary>本体のデバッグオプション。</summary>
+        </member>
+        <member name="P:YNC_PluginSdk.PluginHost.IsKeyAssignMode">
+            <summary>常に false。</summary>
+        </member>
+        <member name="P:YNC_PluginSdk.PluginHost.RegistIcon">
+            <summary>(name, bitmap) プラグインアイコンの登録。現行の本体では何もしない (アイコンは plugin_prop.json で指定する)。</summary>
+        </member>
+        <member name="P:YNC_PluginSdk.PluginHost.GetSettingParam">
+            <summary>(name) → value。本体の設定・状態を取得する (例: "UILanguage", "Native", "Lang1", "Voice.Mute")。</summary>
+        </member>
+        <member name="P:YNC_PluginSdk.PluginHost.SetSettingParam">
+            <summary>(name, value, sender) 本体へ値を設定する。sender には Plugin_Tag を渡す (例: "Status", "StatusColor", "{Plugin_Tag}.customCSS")。</summary>
+        </member>
+        <member name="P:YNC_PluginSdk.PluginHost.SendTextdata">
+            <summary>(ID, text, isFixed) 字幕を入力として送る。</summary>
+        </member>
+        <member name="P:YNC_PluginSdk.PluginHost.SendTextdataV2">
+            <summary>(ID, text, isFixed, userId, userName, optionData) 字幕を入力として送る (拡張版)。optionData で KeepTime / Delete / SelfTimed / IgnorePlugin などを指定できる。</summary>
+        </member>
+        <member name="P:YNC_PluginSdk.PluginHost.SendCommand">
+            <summary>(senderID, targetPlugin_Tag, args) → 戻り値。他のプラグインの onCommand を呼ぶ。宛先が無効なら null。</summary>
+        </member>
+        <member name="P:YNC_PluginSdk.PluginHost.WriteLog">
+            <summary>(message) デバッグログ出力。</summary>
+        </member>
+        <member name="P:YNC_PluginSdk.PluginHost.GetTranslate">
+            <summary>(lang, text) → {"result", "lang", "text"}。翻訳 (同期版)。内部で完了を待つので、フックの中では使わないこと。</summary>
+        </member>
+        <member name="P:YNC_PluginSdk.PluginHost.GetTranslateAsync">
+            <summary>(lang, text) → {"result", "lang", "text"}。翻訳 (非同期版)。</summary>
+        </member>
+        <member name="P:YNC_PluginSdk.PluginHost.GetLanguage">
+            <summary>(text) → {"result", "lang", "text"}。言語判定 (同期版)。フックの中では使わないこと。</summary>
+        </member>
+        <member name="P:YNC_PluginSdk.PluginHost.GetLanguageAsync">
+            <summary>(text) → {"result", "lang", "text"}。言語判定 (非同期版)。</summary>
+        </member>
+        <member name="P:YNC_PluginSdk.PluginHost.SendSpeech">
+            <summary>(text) 読み上げる。</summary>
+        </member>
+        <member name="P:YNC_PluginSdk.PluginHost.SendSpeechV2">
+            <summary>(text, param) 読み上げる (拡張版)。param: talkerName / autherName / platformName / userId / userName / LimitParam / voicePlayAsync。</summary>
+        </member>
+        <member name="P:YNC_PluginSdk.PluginHost.SetWebPathMount">
+            <summary>(urlPath, filePath) 内蔵 Web サーバの URL パスにファイルを割り当てる。filePath が "" で解除。</summary>
+        </member>
+        <member name="P:YNC_PluginSdk.PluginHost.SetAddString">
+            <summary>(filePath, data) 内蔵 Web サーバが返すファイルに文字列を追加する。</summary>
+        </member>
+        <member name="P:YNC_PluginSdk.PluginHost.StopSpeech">
+            <summary>読み上げを停止する。</summary>
+        </member>
+        <member name="P:YNC_PluginSdk.PluginHost.CallGPTFunction">
+            <summary>(method, query) 本体の GPT 機能を呼ぶ (同期版)。フックの中では使わないこと。</summary>
+        </member>
+        <member name="P:YNC_PluginSdk.PluginHost.GetSentiment">
+            <summary>(text) 感情分析 (同期版)。フックの中では使わないこと。</summary>
+        </member>
+        <member name="P:YNC_PluginSdk.PluginHost.CallJevAsync">
+            <summary>
+            判定専用モデル (Jev) に判定させる。(stateJson, questionsJson, model, timeoutMs) → 結果 JSON。
+            成功 {"ok":true,"answers":{...}} / 失敗 {"ok":false,"error":"nokey|timeout|..."}。例外は投げない。
+            model が空なら本体の設定値を使う。API キーは本体が持ち、プラグインには渡らない。古い本体では null。
+            </summary>
+        </member>
+        <member name="P:YNC_PluginSdk.PluginHost.GetSettingParamList">
+            <summary>(name, key) → value。内部設定 (リスト) を取得する。</summary>
+        </member>
+        <member name="P:YNC_PluginSdk.PluginHost.RemoveSettingParamList">
+            <summary>(name, key) 内部設定 (リスト) を削除する。</summary>
+        </member>
+        <member name="P:YNC_PluginSdk.PluginHost.GetContainsParamList">
+            <summary>(name, key) → bool。内部設定 (リスト) の存在を確認する。</summary>
+        </member>
+        <member name="P:YNC_PluginSdk.PluginHost.SetSettingParamList">
+            <summary>(name, key, value, sender) 内部設定 (リスト) を設定する。例: ("Common.sendSpeech.PluginEnabled", Plugin_Tag, Plugin_Tag, Plugin_Tag) で読み上げプラグインとして登録。</summary>
+        </member>
+        <member name="P:YNC_PluginSdk.PluginHost.AddLayoutItem">
+            <summary>(id, title, category, description, iconFile, filePath, urlPath, directPath) レイアウト一覧に項目を追加する。</summary>
+        </member>
+        <member name="P:YNC_PluginSdk.PluginHost.RemoveLayoutItem">
+            <summary>(id) レイアウト一覧から項目を削除する。</summary>
+        </member>
+        <member name="P:YNC_PluginSdk.PluginHost.ReloadLayoutList">
+            <summary>レイアウト一覧を再読み込みする。</summary>
+        </member>
+        <member name="T:YNC_PluginSdk.PluginSdk">
+            <summary>
+            SDK 全体に関わる定数。
+            </summary>
+        </member>
+        <member name="F:YNC_PluginSdk.PluginSdk.ApiVersion">
+            <summary>
+            この SDK が実装しているプラグイン API の世代番号。PluginBase を継承したプラグインの Plugin_ApiVersion になる。
+            本体が対応する上限より大きいプラグインは読み込まれない。
+            </summary>
+        </member>
+        <member name="T:YNC_PluginSdk.SafeTask">
+            <summary>
+            バックグラウンド処理の未処理例外で本体のプロセスごと落ちないようにするためのヘルパー。
+            生の Task.Run や async void の代わりに使う。
+            </summary>
+        </member>
+        <member name="M:YNC_PluginSdk.SafeTask.Run(System.Action,System.Action{System.Exception})">
+            <summary>
+            <paramref name="action"/> を別スレッドで実行する。例外は内部で捕捉され、呼び出し元や本体には伝わらない。
+            </summary>
+            <param name="action">実行する処理。</param>
+            <param name="onError">処理中に例外が起きたときに呼ばれる (任意。ログ出力用)。これ自体が例外を投げても握りつぶされる。</param>
+        </member>
+        <member name="T:YNC_PluginSdk.SharedHttp">
+            <summary>
+            プロセスで共有する HttpClient。呼び出しごと・プラグインごとに new HttpClient() するとソケットが枯渇するため、これを使い回す。
+            </summary>
+        </member>
+        <member name="P:YNC_PluginSdk.SharedHttp.Client">
+            <summary>共有の HttpClient (タイムアウト 100 秒、gzip/deflate 展開、接続は 2 分で入れ替え)。</summary>
+        </member>
+    </members>
+</doc>
