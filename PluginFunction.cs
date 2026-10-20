@@ -274,12 +274,26 @@ namespace YNC_NeoPlugin
         /* 例外でホストを巻き込まないバックグラウンド実行                  */
         /******************************************************************/
         // 生の Task.Run や async void は、例外を取りこぼすとアプリごと落ちることがあります。
+        //   RunBackground(() => { ... });                                  同期の処理
+        //   RunBackground(async () => { await getTranslateAsync(...); });   非同期の処理 (下の Func<Task> 版が使われる)
         private void RunBackground(Action action)
         {
             if (action == null) return;
             Task.Run(() =>
             {
                 try { action(); }
+                catch (Exception ex) { Log($"Error>{ex.Message + ex.StackTrace}"); }
+            });
+        }
+
+        // async ラムダ用。Action 版に async ラムダを渡すと async void になり、
+        // await の先で起きた例外を捕まえられずアプリごと落ちるため、こちらで待って捕まえる。
+        private void RunBackground(Func<Task> action)
+        {
+            if (action == null) return;
+            Task.Run(async () =>
+            {
+                try { await action().ConfigureAwait(false); }
                 catch (Exception ex) { Log($"Error>{ex.Message + ex.StackTrace}"); }
             });
         }

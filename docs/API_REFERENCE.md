@@ -100,7 +100,7 @@
 - **高速パス**: 50ms 以下で終わる呼び出しが 8 回続いたフックは、専用スレッドを経由せず呼び出し元で直接実行されます。**この間はタイムアウト保護が効きません**（一度でも 50ms を超えれば保護経路へ戻ります）。「いつもは速いが、たまに長く止まる」フックは、その 1 回でパイプライン全体を止めることになります。
 
 **時間のかかる処理（ネットワーク・ファイル I/O・同期版のホスト API）は必ずバックグラウンドへ逃がし、フック自体はすぐに値を返してください。**
-雛形では `RunBackground(() => { ... })`、SDK では `SafeTask.Run(...)` が使えます。
+雛形では `RunBackground(() => { ... })`（非同期の処理は `RunBackground(async () => { await ...; })`）、SDK では `SafeTask.Run(...)` が使えます。
 
 ---
 
@@ -355,9 +355,10 @@ sendTextdataV2?.Invoke(id, text, isFixed, userId, userName, optionData);
 | `text` | string | 翻訳結果 / 元の文章（失敗時は元の文章） |
 
 ```csharp
-RunBackground(() =>
+RunBackground(async () =>
 {
-    var ret = getTranslateAsync?.Invoke("en", text).GetAwaiter().GetResult();
+    if (getTranslateAsync == null) return;
+    var ret = await getTranslateAsync("en", text);
     if (ret != null && ret.TryGetValue("result", out object ok) && ok is bool b && b)
     {
         string translated = ret["text"] as string;

@@ -35,6 +35,10 @@
     <None Update="plugin_prop.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <!-- Newtonsoft.Json.dll を配布するので、そのライセンス表示も出力に置く -->
+    <None Include="..\..\Newtonsoft_Json_License_MIT.txt" Link="Newtonsoft_Json_License_MIT.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
