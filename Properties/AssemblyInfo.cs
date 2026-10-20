@@ -19,6 +19,9 @@ using System.Runtime.InteropServices;
 // その型の ComVisible 属性を true に設定してください。
 [assembly: ComVisible(false)]
 
+// Windows 専用のプラグインであることを示す (GenerateAssemblyInfo=false のため手書きで指定)
+[assembly: System.Runtime.Versioning.SupportedOSPlatform("windows")]
+
 // このプロジェクトが COM に公開される場合、次の GUID が typelib の ID になります
 [assembly: Guid("dc84c384-4ce9-4095-bcf9-d7507c17e0d5")]
 

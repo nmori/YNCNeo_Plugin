@@ -1,0 +1,17 @@
+{
+  "tag": "Plugin_Prototype",
+  "id": "8E828504-7E55-4E97-85CC-D7E4AF5273BB",
+  "icon": "",
+  "ja": {
+    "category": "その他",
+    "title": "プロトタイププラグイン",
+    "summary": "プラグイン開発のひな形です。",
+    "require": ""
+  },
+  "en": {
+    "category": "Other",
+    "title": "Prototype",
+    "summary": "A template for plugin development.",
+    "require": ""
+  }
+}

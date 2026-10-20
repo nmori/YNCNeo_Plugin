@@ -1,0 +1,17 @@
+{
+  "tag": "Plugin_SdkSample",
+  "id": "3F0C5E1A-7B2D-4C8E-9A61-2D4B7E9F1C35",
+  "icon": "",
+  "ja": {
+    "category": "その他",
+    "title": "SDKサンプル",
+    "summary": "YNC_PluginSdk を使ったプラグインの例です。",
+    "require": "ゆかりねっとコネクターNEO v3.0 以降"
+  },
+  "en": {
+    "category": "Other",
+    "title": "SDK Sample",
+    "summary": "An example plugin built with YNC_PluginSdk.",
+    "require": "Yukarinette Connector NEO v3.0 or later"
+  }
+}
